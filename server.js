@@ -3,7 +3,7 @@ const app = express();
 app.use(express.json());
 
 const WHAPI_TOKEN = process.env.WHAPI_TOKEN;
-const GEMINI_KEY = process.env.GEMINI_KEY;
+const GROQ_KEY = process.env.GROQ_KEY;
 const WHAPI_URL = 'https://gate.whapi.cloud';
 
 const conversaciones = {};
@@ -107,25 +107,29 @@ REGLAS:
 - Dirección: pide que se comuniquen directamente al restaurante.
 - Sé breve y conversacional.`;
 
-async function llamarGemini(historial) {
-  const contents = historial.map(m => ({
-    role: m.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: m.content }]
-  }));
+async function llamarGroq(historial) {
+  const messages = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...historial
+  ];
 
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${GROQ_KEY}`
+    },
     body: JSON.stringify({
-      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents,
-      generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+      model: 'llama-3.3-70b-versatile',
+      messages,
+      max_tokens: 1000,
+      temperature: 0.7
     })
   });
 
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
-  return data.candidates[0].content.parts[0].text;
+  return data.choices[0].message.content;
 }
 
 async function enviarMensaje(telefono, texto) {
@@ -169,7 +173,7 @@ app.post('/webhook', async (req, res) => {
         conversaciones[telefono] = conversaciones[telefono].slice(-40);
       }
 
-      const respuesta = await llamarGemini(conversaciones[telefono]);
+      const respuesta = await llamarGroq(conversaciones[telefono]);
       conversaciones[telefono].push({ role: 'assistant', content: respuesta });
 
       const textoLimpio = respuesta.replace(/\|\|\|JSON\{.*?\}\|\|\|/s, '').trim();

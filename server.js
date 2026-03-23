@@ -44,7 +44,7 @@ PROMOCIONES POR DÍA:
 - Jueves: Memelas especiales: $85
 
 BEBIDAS:
-- Agua de sabor: 1 litro $35 | Medio litro $20
+- Agua de sabor del día (sabor varía cada día, preguntar al cliente si quiere saber cuál es): 1 litro $35 | Medio litro $20
 - Agua embotellada: Medio litro $15 | 1 litro $20 | 1.2 litros $25
 - Agua mineral: $27
 - Refresco 600ml (Coca Cola / Sprite / Squirt / Naranjada Peñafiel / Peñafiel sabores): $27
@@ -79,11 +79,16 @@ Cuando el cliente pida un platillo, pregunta estas preferencias de forma natural
    - Bebidas calientes (café, atole, té, nescafé): Caliente / Tibio
    - Agua del día: Al tiempo / Fría
 
-5. MEMELAS:
-   a) Ingrediente base: Queso / Quesillo
-   b) Ingrediente encima: Tasajo / Cecina / Chorizo / Queso / Quesillo
-   c) Ingrediente adicional (opcional)
-   d) ¿Con o sin asiento (manteca)?
+5. MEMELAS (se venden individualmente, preguntar cantidad primero):
+   a) Primero pregunta: ¿Cuántas memelas quieres?
+   b) Por cada memela pregunta el ingrediente:
+      - Base queso: $20 | Base quesillo: $25 | Con cecina/chorizo/tasajo: $30
+   c) Pregunta: ¿Con o sin asiento (manteca)?
+   
+   PROMOCIÓN JUEVES DE MEMELAS ($85 = 3 memelas):
+   - La promoción incluye 3 memelas: la 1ra es de queso o quesillo, las otras 2 son de carne a elegir (cecina, chorizo o tasajo)
+   - El cliente puede personalizar (ej: las 3 de queso) pero la combinación original es 1 queso/quesillo + 2 de carne
+   - Solo aplica los jueves
 
 6. TACOS: ¿Con quesillo o sin quesillo?
 
@@ -106,7 +111,7 @@ REGLAS:
 - Solo vendes lo del menú.
 - Horario: Lunes a sábado 8am - 5pm.
 - Dirección: pide que se comuniquen directamente al restaurante.
-- NUNCA repitas información que ya dijiste en el mismo pedido.
+- NUNCA inventes productos, sabores, ingredientes o información que no esté en el menú. Si no sabes algo, di "no tengo ese dato, te recomiendo preguntar directamente al restaurante".
 - NUNCA hagas más de 3 preguntas en un mismo mensaje.
 - Cuando el cliente pida el menú completo, responde SOLO con este texto exacto, sin agregar nada más:
 MENU_COMPLETO
@@ -157,7 +162,7 @@ _Carnes a elegir: Cecina Blanca, Cecina Enchilada, Chorizo, Huevos o Tasajo_`,
 • Picadillo de res: $95
 • Club Sandwich: $130`,
 
-  `🌽 *MEMELAS Y TACOS*
+  `🌽 *MEMELAS Y TACOS* _(memelas por pieza)_
 • Memela con queso: $20 | con quesillo: $25
 • Memela con cecina/chorizo/tasajo: $30
 • Taco (quesillo/cecina/chorizo/tasajo): $35
@@ -166,10 +171,10 @@ _Carnes a elegir: Cecina Blanca, Cecina Enchilada, Chorizo, Huevos o Tasajo_`,
 • Lunes: Enmoladas 3 pzas $75
 • Martes: Molletes $85
 • Miércoles: Desayuno americano $105
-• Jueves: Memelas especiales $85`,
+• Jueves: Memelas especiales $85 _(3 memelas: 1 queso/quesillo + 2 de carne)_`,
 
   `🥤 *BEBIDAS*
-• Agua de sabor: litro $35 | medio $20
+• Agua de sabor del día: litro $35 | medio $20
 • Agua embotellada: medio $15 | litro $20 | 1.2L $25
 • Agua mineral: $27
 • Refresco 600ml (Coca/Sprite/Squirt/Peñafiel): $27

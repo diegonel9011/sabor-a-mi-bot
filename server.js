@@ -99,13 +99,18 @@ Cuando el cliente pida un platillo, pregunta estas preferencias de forma natural
 5. Al confirmar, da tiempo estimado: 20-25 minutos.
 
 REGLAS:
-- Agrupa preguntas cuando sea natural.
+- Sé MUY breve y directa. Máximo 3-4 líneas por mensaje.
+- Agrupa todas las preguntas necesarias en UN solo mensaje, no varios.
 - Si el cliente ya mencionó una preferencia, no vuelvas a preguntar.
 - Entiende lenguaje natural: "quítalo", "cámbialo", "sin eso", "ponme dos", etc.
 - Solo vendes lo del menú.
 - Horario: Lunes a sábado 8am - 5pm.
 - Dirección: pide que se comuniquen directamente al restaurante.
-- Sé breve y conversacional.`;
+- NUNCA repitas información que ya dijiste en el mismo pedido.
+- NUNCA hagas más de 3 preguntas en un mismo mensaje.
+- Cuando el cliente pida el menú completo, responde SOLO con este texto exacto, sin agregar nada más:
+MENU_COMPLETO
+- Cuando el cliente pregunte por una categoría específica (bebidas, desayunos, etc.), muéstrala de forma breve y organizada.`;
 
 async function llamarGroq(historial) {
   const messages = [
@@ -132,6 +137,51 @@ async function llamarGroq(historial) {
   return data.choices[0].message.content;
 }
 
+const MENU_MENSAJES = [
+  `🍳 *DESAYUNOS*
+• Chilaquiles roja/verde/frijol: $85 (Tasajo $95, sencillos $75)
+• Enchiladas Verdes: $85 (Tasajo $95)
+• Enfrijoladas: $85 (Tasajo $95)
+• Enmoladas: $85 (Tasajo $95)
+• Entomatadas: $85 (Tasajo $95)
+• Huevos al gusto _(incluye guarnición)_: $85 (Tocino $95)
+• Omelette _(incluye guarnición)_: $95
+_Carnes a elegir: Cecina Blanca, Cecina Enchilada, Chorizo, Huevos o Tasajo_`,
+
+  `🥩 *CARNES Y ESPECIALIDADES* _(incluyen guarnición)_
+• Tasajo: $95 | Cecina Blanca/Enchilada: $85
+• Chorizo: $85 | Pechuga: $95
+• Mole negro/rojo con cerdo: $85
+• Chuleta marinada parrilla: $85
+• Chuleta de res marinada: $95
+• Picadillo de res: $95
+• Club Sandwich: $130`,
+
+  `🌽 *MEMELAS Y TACOS*
+• Memela con queso: $20 | con quesillo: $25
+• Memela con cecina/chorizo/tasajo: $30
+• Taco (quesillo/cecina/chorizo/tasajo): $35
+
+📅 *PROMOS DEL DÍA*
+• Lunes: Enmoladas 3 pzas $75
+• Martes: Molletes $85
+• Miércoles: Desayuno americano $105
+• Jueves: Memelas especiales $85`,
+
+  `🥤 *BEBIDAS*
+• Agua de sabor: litro $35 | medio $20
+• Agua embotellada: medio $15 | litro $20 | 1.2L $25
+• Agua mineral: $27
+• Refresco 600ml (Coca/Sprite/Squirt/Peñafiel): $27
+• Refresco vidrio: $25
+• Café/Atole/Té: $15-20 | Nescafé: $25
+
+🍞 *EXTRAS*
+• Guarnición (arroz/frijoles/sopa/ensalada): $25-30
+• Carne extra: $35 | Huevos extra 2pzas: $30
+• Queso extra: $20 | Pan dulce: $25 | Tortilla: $3`
+];
+
 async function enviarMensaje(telefono, texto) {
   await fetch(`${WHAPI_URL}/messages/text`, {
     method: 'POST',
@@ -139,11 +189,15 @@ async function enviarMensaje(telefono, texto) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${WHAPI_TOKEN}`
     },
-    body: JSON.stringify({
-      to: telefono,
-      body: texto
-    })
+    body: JSON.stringify({ to: telefono, body: texto })
   });
+}
+
+async function enviarMenu(telefono) {
+  for (const seccion of MENU_MENSAJES) {
+    await enviarMensaje(telefono, seccion);
+    await new Promise(r => setTimeout(r, 600));
+  }
 }
 
 app.post('/webhook', async (req, res) => {
@@ -156,6 +210,7 @@ app.post('/webhook', async (req, res) => {
     for (const msg of messages) {
       if (msg.from_me) continue;
       if (msg.type !== 'text') continue;
+      if (msg.from.includes('@g.us')) continue;
 
       const telefono = msg.from;
       const texto = msg.text?.body;
@@ -177,7 +232,12 @@ app.post('/webhook', async (req, res) => {
       conversaciones[telefono].push({ role: 'assistant', content: respuesta });
 
       const textoLimpio = respuesta.replace(/\|\|\|JSON\{.*?\}\|\|\|/s, '').trim();
-      await enviarMensaje(telefono, textoLimpio);
+
+      if (textoLimpio === 'MENU_COMPLETO') {
+        await enviarMenu(telefono);
+      } else {
+        await enviarMensaje(telefono, textoLimpio);
+      }
 
       console.log(`[Lupita -> ${telefono}]: ${textoLimpio.substring(0, 80)}...`);
     }

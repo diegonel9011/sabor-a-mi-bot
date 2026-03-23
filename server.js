@@ -74,9 +74,13 @@ EXTRAS Y GUARNICIONES:
 2. COCCIÓN DE CARNES (tasajo, cecina, chorizo, pechuga, cortes):
    Tierno / Término medio / Bien cocido — preguntar siempre
 
-3. GUARNICIONES — SOLO para: carnes para preparar, cortes, especialidades, huevos al gusto, omelette
-   Frijoles / Ensalada / Arroz
-   NO preguntar para: chilaquiles, enchiladas, enfrijoladas, enmoladas, entomatadas, memelas, tacos, molletes
+3. GUARNICIONES — REGLA CRÍTICA:
+   ✅ SÍ preguntar guarnición: carnes para preparar, cortes, especialidades, huevos al gusto, omelette
+   ❌ NUNCA preguntar guarnición para: chilaquiles, enchiladas, enfrijoladas, enmoladas, entomatadas, memelas, tacos, molletes
+   ❌ Las enfrijoladas NO llevan guarnición. NUNCA.
+   ❌ Los chilaquiles NO llevan guarnición. NUNCA.
+   ❌ Las enchiladas NO llevan guarnición. NUNCA.
+   Opciones cuando aplica: Frijoles / Ensalada / Arroz
 
 4. BEBIDAS TEMPERATURA:
    - Frías: Frío / Al tiempo
@@ -98,13 +102,23 @@ EXTRAS Y GUARNICIONES:
 1. Saluda con emoji y pregunta el nombre
 2. Pregunta qué desea ordenar
 3. Haz las preguntas de modificadores de forma natural y agrupada
-4. Al terminar muestra resumen bonito con viñetas y total
-5. Pide confirmación
-6. Al confirmar responde EXACTAMENTE en este formato (sin cambiar nada):
-PEDIDO_CONFIRMADO:[nombre]|[resumen con \n entre items]|[total con $]
+4. Al terminar el pedido, pregunta la modalidad:
+   "¿Cómo prefieres recibir tu pedido? 😊
+   🏠 Domicilio (gratis dentro de la ciudad)
+   🥡 Para llevar (pasa a recoger)
+   🪑 Comer aquí en el local"
+5. Si elige DOMICILIO: pide la dirección completa
+6. Si elige PARA LLEVAR o COMER AQUÍ: continúa normal
+7. Muestra resumen bonito con viñetas, modalidad y total
+8. Pide confirmación
+9. Al confirmar responde EXACTAMENTE en este formato:
+PEDIDO_CONFIRMADO:[nombre]|[resumen con \n entre items]|[total con $]|[modalidad: DOMICILIO/LLEVAR/LOCAL]|[dirección o "local"]
 
-Ejemplo exacto:
-PEDIDO_CONFIRMADO:Diego|• 3 memelas con asiento ($80)\n• Agua de sabor medio litro ($20)|$100
+Ejemplo domicilio:
+PEDIDO_CONFIRMADO:Diego|• 3 memelas con asiento ($80)\n• Agua de sabor medio litro ($20)|$100|DOMICILIO|Calle Reforma 123, Col. Centro
+
+Ejemplo para llevar:
+PEDIDO_CONFIRMADO:Diego|• Chilaquiles rojos con cecina ($85)|$85|LLEVAR|local
 
 === REGLAS ===
 - Máximo 4-5 líneas por mensaje con saltos de línea y emojis
@@ -216,18 +230,22 @@ async function enviarMenu(telefono) {
   }
 }
 
-async function notificarDueno(nombre, resumen, total, telefono) {
+async function notificarDueno(pedido, telefono) {
   const telLimpio = telefono.replace('@s.whatsapp.net', '').replace('52', '');
+  const modalidadEmoji = pedido.modalidad === 'DOMICILIO' ? '🏠 Domicilio' : pedido.modalidad === 'LLEVAR' ? '🥡 Para llevar' : '🪑 Comer aquí';
+  const direccionInfo = pedido.modalidad === 'DOMICILIO' ? `\n📍 Dirección: ${pedido.direccion}` : '';
+
   const msg =
 `🔔 *Nuevo pedido — Sabor a Mi* 🌮
 
-👤 Cliente: *${nombre}*
+👤 Cliente: *${pedido.nombre}*
 📱 Tel: ${telLimpio}
+${modalidadEmoji}${direccionInfo}
 
 🛒 *Pedido:*
-${resumen.replace(/\\n/g, '\n')}
+${pedido.resumen.replace(/\\n/g, '\n')}
 
-💰 *Total: ${total}*
+💰 *Total: ${pedido.total}*
 
 _Para avisar que está listo escribe:_
 */listo ${telefono.replace('@s.whatsapp.net', '')}*`;
@@ -236,12 +254,14 @@ _Para avisar que está listo escribe:_
 }
 
 function parsearPedido(texto) {
-  const match = texto.match(/^PEDIDO_CONFIRMADO:(.+?)\|(.+)\|(\$[\d,]+)$/s);
+  const match = texto.match(/^PEDIDO_CONFIRMADO:(.+?)\|(.+)\|(\$[\d,]+)\|(\w+)\|(.+)$/s);
   if (!match) return null;
   return {
     nombre: match[1].trim(),
     resumen: match[2].trim(),
-    total: match[3].trim()
+    total: match[3].trim(),
+    modalidad: match[4].trim(),
+    direccion: match[5].trim()
   };
 }
 
@@ -299,6 +319,12 @@ _Sabor a Mi — Lun a Sáb 8am-5pm_`);
         if (pedido) {
           pedidosConfirmados[telefono] = pedido;
           const resumenFormato = pedido.resumen.replace(/\\n/g, '\n');
+          const modalidadTexto = pedido.modalidad === 'DOMICILIO'
+            ? `🏠 *Envío a domicilio*\n📍 ${pedido.direccion}\n⏱ Tiempo estimado: *30-40 minutos*`
+            : pedido.modalidad === 'LLEVAR'
+            ? `🥡 *Para llevar*\n⏱ Tiempo estimado: *20-25 minutos*`
+            : `🪑 *Comer en el local*\n⏱ Tiempo estimado: *20-25 minutos*`;
+
           await enviarMensaje(telefono,
 `✅ *¡Pedido confirmado, ${pedido.nombre}!* 🎉
 
@@ -307,9 +333,9 @@ ${resumenFormato}
 
 💰 *Total: ${pedido.total}*
 
-⏱ Tiempo estimado: *20-25 minutos*
+${modalidadTexto}
 Te avisamos cuando esté listo 😊🌮`);
-          await notificarDueno(pedido.nombre, pedido.resumen, pedido.total, telefono);
+          await notificarDueno(pedido, telefono);
         }
 
       } else {

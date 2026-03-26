@@ -153,11 +153,13 @@ const MENU_MENSAJES = [
 ];
 
 async function enviarMensajeMeta(telefono, texto) {
-  await fetch(`https://graph.facebook.com/v22.0/${META_PHONE_ID}/messages`, {
+  const res = await fetch(`https://graph.facebook.com/v22.0/${META_PHONE_ID}/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${META_TOKEN}` },
     body: JSON.stringify({ messaging_product: 'whatsapp', to: telefono, type: 'text', text: { body: texto } })
   });
+  const data = await res.json();
+  console.log(`[Meta response]:`, JSON.stringify(data));
 }
 
 async function enviarMenu(telefono) {
